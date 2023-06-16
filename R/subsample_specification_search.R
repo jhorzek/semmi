@@ -19,7 +19,8 @@
 #' @param operators which parameters should be considered to be added to the model?
 #' Default: all types of parameters. If set to "=~", only loadings are added. If
 #' set to "~" only regressions are added. If set to "~~" only covariances are added.
-#' @param n_subsamples number of subsmaples to use. The more the merrier!
+#' @param N_subsets sample size in subsets
+#' @param number_of_subsamples number of subsamples to use. The more the merrier!
 #' @param max_iter maximal number of tries: Subsmaples samples may fail to fit.
 #' Therefore, we set an upper bound on the number of draws.
 #' @param ... option to pass arguments to the lavaan sem-function
@@ -47,39 +48,45 @@
 #' spec_searched <- subsample_specification_search(model = model,
 #'                                       data = PoliticalDemocracy,
 #'                                       operators = "~~",
-#'                                       n_subsamples = 50) # should be much higher!
+#'                                       N_subsets = 70,
+#'                                       number_of_subsamples = 5) # should be much higher!
 #' spec_searched
 #' @md
 #' @export
 subsample_specification_search <- function(model, data, alpha = .05,
                                            operators = c("=~", "~", "~~"),
-                                           n_subsamples,
-                                           max_iter = 100*n_subsamples,
+                                           N_subsets,
+                                           number_of_subsamples,
+                                           max_iter = 100*number_of_subsamples,
                                            ...){
+
+  # save input
+  internal <- c(as.list(environment()), ...)
+
 
   N <- nrow(data) # sample size
   it <- 1         # iteration counter
   sucessful <- 0  # number of sucessful bootstrap iterations
 
-  if(n_subsamples >= N)
-    stop("n_subsamples must be smaller than the sample size of the data set.")
+  if(N_subsets >= N)
+    stop("N_subsets must be smaller than the sample size of the data set.")
 
   result <- data.frame(sample = integer(),
                        modification = character(),
                        mi = numeric())
 
-  pb <- txtProgressBar(min = 0, max = n_subsamples, style = 3)
+  pb <- txtProgressBar(min = 0, max = number_of_subsamples, style = 3)
 
   while (it <= max_iter){
-    if(sucessful >= n_subsamples)
+    if(sucessful >= number_of_subsamples)
       break
 
     # sample
-    subsample <- data[sample(1:N, size = n_subsamples, replace = FALSE), , drop = FALSE]
+    subsample <- data[sample(1:N, size = N_subsets, replace = FALSE), , drop = FALSE]
 
     # check if a model can be fitted in the current sample:
     lavaan_model <- tryCatch(
-      expr = {sem(model, data = subsample, ...)},
+      expr = {lavaan::sem(model, data = subsample, ...)},
       warning = function(w){
         return("skip")
       },
@@ -123,7 +130,8 @@ subsample_specification_search <- function(model, data, alpha = .05,
   }
 
   returns <- list(result = result,
-                  n_subsamples = n_subsamples)
+                  number_of_subsamples = number_of_subsamples,
+                  internal = internal)
 
   class(returns) <- "Subsample_Spec_Search"
 
@@ -134,18 +142,20 @@ subsample_specification_search <- function(model, data, alpha = .05,
 #'
 #' show results of specification_search
 #' @param object object of class Subsample_Spec_Search
-#' @return nothing
+#' @return tibble with summarized results
+#' @method show Subsample_Spec_Search
 #' @export
 show.Subsample_Spec_Search <- function(object){
   cat("Results of bootstrapped specification search:\n")
   cat(paste0(rep("_", nchar("Results of bootstrapped specification search:")), collapse = ""), "\n")
 
-  n_subsamples <- object$n_subsamples
+  number_of_subsamples <- object$number_of_subsamples
 
-  object$result |>
-    group_by(modification) |>
-    summarise("% added" = (n()/n_subsamples)*100) |>
-    print()
+  return(
+    object$result |>
+      dplyr::group_by(.data[["modification"]]) |>
+      dplyr::summarise("% added" = (dplyr::n()/number_of_subsamples)*100)
+  )
 }
 
 #' summary.Subsample_Spec_Search
@@ -153,16 +163,47 @@ show.Subsample_Spec_Search <- function(object){
 #' show results of specification_search
 #' @param object object of class Subsample_Spec_Search
 #' @param ... not used
-#' @return nothing
+#' @return tibble with summarized results
+#' @method summary Subsample_Spec_Search
 #' @export
 summary.Subsample_Spec_Search <- function(object, ...){
   cat("Results of bootstrapped specification search:\n")
   cat(paste0(rep("_", nchar("Results of bootstrapped specification search:")), collapse = ""), "\n")
 
-  n_subsamples <- object$n_subsamples
+  number_of_subsamples <- object$number_of_subsamples
 
-  object$result |>
-    group_by(modification) |>
-    summarise("% added" = (n()/n_subsamples)*100) |>
-    print()
+  return(
+    object$result |>
+      dplyr::group_by(.data[["modification"]]) |>
+      dplyr::summarise("% added" = (dplyr::n()/number_of_subsamples)*100)
+  )
+}
+
+
+#' plot.Subsample_Spec_Search
+#'
+#' Plot the results of a bootstrap specification search
+#' @param x object of class Subsample_Spec_Search
+#' @param y not used
+#' @param ... not used
+#' @return ggplot2 object
+#' @method plot Subsample_Spec_Search
+#' @export
+plot.Subsample_Spec_Search <- function(x, y = NULL, ...){
+
+  number_of_subsamples <- x$number_of_subsamples
+
+  summarized <- x$result |>
+    dplyr::group_by(.data[["modification"]]) |>
+    dplyr::summarise("% added" = (dplyr::n()/number_of_subsamples)*100)
+
+  return(
+    ggplot2::ggplot(summarized,
+                    ggplot2::aes(x = .data[["modification"]],
+                                 y = .data[["% added"]])) +
+      ggplot2::geom_col() +
+      ggplot2::ylab("% of models, where this parameter was added") +
+      ggplot2::xlab("Parameter label") +
+      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90))
+  )
 }

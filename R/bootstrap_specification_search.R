@@ -47,7 +47,7 @@
 #' spec_searched <- bootstrap_specification_search(model = model,
 #'                                       data = PoliticalDemocracy,
 #'                                       operators = "~~",
-#'                                       n_bootstrap_samples = 50) # should be much higher!
+#'                                       n_bootstrap_samples = 5) # should be much higher!
 #' spec_searched
 #' @md
 #' @export
@@ -56,6 +56,8 @@ bootstrap_specification_search <- function(model, data, alpha = .05,
                                            n_bootstrap_samples,
                                            max_iter = 100*n_bootstrap_samples,
                                            ...){
+  # save input
+  internal <- c(as.list(environment()), ...)
 
   N <- nrow(data) # sample size
   it <- 1         # iteration counter
@@ -76,7 +78,7 @@ bootstrap_specification_search <- function(model, data, alpha = .05,
 
     # check if a model can be fitted in the current sample:
     lavaan_model <- tryCatch(
-      expr = {sem(model, data = bootstrap_sample, ...)},
+      expr = {lavaan::sem(model, data = bootstrap_sample, ...)},
       warning = function(w){
         return("skip")
       },
@@ -120,7 +122,8 @@ bootstrap_specification_search <- function(model, data, alpha = .05,
   }
 
   returns <- list(result = result,
-                  n_bootstrap_samples = n_bootstrap_samples)
+                  n_bootstrap_samples = n_bootstrap_samples,
+                  internal = internal)
 
   class(returns) <- "Boot_Spec_Search"
 
@@ -131,7 +134,8 @@ bootstrap_specification_search <- function(model, data, alpha = .05,
 #'
 #' show results of specification_search
 #' @param object object of class Boot_Spec_Search
-#' @return nothing
+#' @return tibble with summarized results
+#' @method show Boot_Spec_Search
 #' @export
 show.Boot_Spec_Search <- function(object){
   cat("Results of bootstrapped specification search:\n")
@@ -139,10 +143,11 @@ show.Boot_Spec_Search <- function(object){
 
   n_bootstrap_samples <- object$n_bootstrap_samples
 
-  object$result |>
-    group_by(modification) |>
-    summarise("% added" = (n()/n_bootstrap_samples)*100) |>
-    print()
+  return(
+    object$result |>
+      dplyr::group_by(.data[["modification"]]) |>
+      dplyr::summarise("% added" = (dplyr::n()/n_bootstrap_samples)*100)
+  )
 }
 
 #' summary.Boot_Spec_Search
@@ -150,7 +155,8 @@ show.Boot_Spec_Search <- function(object){
 #' show results of specification_search
 #' @param object object of class Boot_Spec_Search
 #' @param ... not used
-#' @return nothing
+#' @return tibble with summarized results
+#' @method summary Boot_Spec_Search
 #' @export
 summary.Boot_Spec_Search <- function(object, ...){
   cat("Results of bootstrapped specification search:\n")
@@ -158,8 +164,37 @@ summary.Boot_Spec_Search <- function(object, ...){
 
   n_bootstrap_samples <- object$n_bootstrap_samples
 
-  object$result |>
-    group_by(modification) |>
-    summarise("% added" = (n()/n_bootstrap_samples)*100) |>
-    print()
+  return(
+    object$result |>
+      dplyr::group_by(.data[["modification"]]) |>
+      dplyr::summarise("% added" = (dplyr::n()/n_bootstrap_samples)*100)
+  )
+}
+
+#' plot.Boot_Spec_Search
+#'
+#' Plot the results of a bootstrap specification search
+#' @param x object of class Boot_Spec_Search
+#' @param y not used
+#' @param ... not used
+#' @return ggplot2 object
+#' @method plot Boot_Spec_Search
+#' @export
+plot.Boot_Spec_Search <- function(x, y = NULL, ...){
+
+  n_bootstrap_samples <- x$n_bootstrap_samples
+
+  summarized <- x$result |>
+    dplyr::group_by(.data[["modification"]]) |>
+    dplyr::summarise("% added" = (dplyr::n()/n_bootstrap_samples)*100)
+
+  return(
+    ggplot2::ggplot(summarized,
+                    ggplot2::aes(x = .data[["modification"]],
+                                 y = .data[["% added"]])) +
+      ggplot2::geom_col() +
+      ggplot2::ylab("% of models, where this parameter was added") +
+      ggplot2::xlab("Parameter label") +
+      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90))
+  )
 }

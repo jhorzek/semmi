@@ -58,7 +58,7 @@ specification_search <- function(model, data, alpha = .05,
     stop("model must be a lavaan syntax, not a fitted model")
 
   lavaan_model <- tryCatch(
-    expr = {sem(model, data = data, ...)},
+    expr = {lavaan::sem(model, data = data, ...)},
     warning = function(w){
       message("Stopped specification search: Adding further parameters resulted in warning in lavaan.")
       return("stop")
@@ -76,7 +76,7 @@ specification_search <- function(model, data, alpha = .05,
     return(spec_search_result)
   }
 
-  MI <- modificationIndices(lavaan_model, alpha = alpha)
+  MI <- lavaan::modificationIndices(lavaan_model, alpha = alpha)
 
   # modify only specified parameter types:
   MI <- MI[MI$op %in% operators,]
@@ -101,6 +101,7 @@ specification_search <- function(model, data, alpha = .05,
       alpha = alpha,
       previous_model = lavaan_model,
       added = added,
+      operators = operators,
       ... = ...
     )
     )
@@ -122,6 +123,7 @@ specification_search <- function(model, data, alpha = .05,
 #' show results of specification_search
 #' @param object object of class Spec_Search
 #' @return nothing
+#' @method show Spec_Search
 #' @export
 show.Spec_Search <- function(object){
   cat("Results of specification search:\n")
@@ -139,6 +141,7 @@ show.Spec_Search <- function(object){
 #' @param object object of class Spec_Search
 #' @param ... not used
 #' @return nothing
+#' @method summary Spec_Search
 #' @export
 summary.Spec_Search <- function(object, ...){
   cat("Results of specification search:\n")

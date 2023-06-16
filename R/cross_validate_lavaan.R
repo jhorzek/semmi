@@ -3,7 +3,7 @@
 #' Cross-validate a model fitted with lavaan using a separate test set. Currently
 #' only supports single-group models fitted with (full information) maximum likelihood.
 #' @param lavaan_model model fitted with lavaan
-#' @param test_set data set used for cross-validation
+#' @param test_set raw data set used for cross-validation
 #' @examples
 #' # example code
 #'
@@ -11,11 +11,15 @@
 #' @export
 cross_validate_lavaan <- function(lavaan_model, test_set){
 
-  train_data <- lavInspect(lavaan_model, what = "data")
+  train_data <- lavaan::lavInspect(lavaan_model, what = "data")
   test_set <- test_set[, colnames(train_data)]
 
-  implied <- lavInspect(lavaan_model, "implied")
+  implied <- lavaan::lavInspect(lavaan_model, "implied")
   m2ll <- 0
+
+  if(is.null(implied$mean)){
+    implied$mean <- apply(train_data[complete.cases(train_data),],2,mean)
+  }
 
   for(i in 1:nrow(test_set)){
 
@@ -29,12 +33,13 @@ cross_validate_lavaan <- function(lavaan_model, test_set){
 
     m2ll <- m2ll + (-2)*mvtnorm::dmvnorm(x = test_set[i,!is_missing, drop = FALSE],
                                          mean = implied_means_no_na,
-                                         cov = implied_cov_no_na)
+                                         sigma = implied_cov_no_na,
+                                         log = TRUE)
 
   }
 
-  class(m2LL) <- "-2-log-Likelihood"
+  class(m2ll) <- "-2-log-Likelihood"
 
-  return(m2LL)
+  return(m2ll)
 
 }

@@ -12,7 +12,7 @@ Description: Modification indices are commonly used in structural equation model
              capitalization on chance (i.e., overfitting). semmi (SEM modification
              indices) provides bootstrapped or cross-validated modification indices 
              to evaluate the stability of added modifications.
-License: GPL>=2
+License: GPL (>= 2)
 Encoding: UTF-8
 RoxygenNote: 7.2.3
 Roxygen: list(markdown = TRUE)
@@ -21,7 +21,9 @@ Depends:
  dplyr
 Imports:
     ggplot2,
-    mvtnorm
+    mvtnorm,
+    methods,
+    rlang
 Suggests:
     knitr,
     rmarkdown
