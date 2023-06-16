@@ -1,15 +1,15 @@
 #' add_modifications
 #'
 #' Adds modifications identified by bootstrap_specification_search or
-#' subsample_specification_search to the lavaan model. Both
-#' bootstrap_specification_search and subsample_specification_search provide
+#' resample_specification_search to the lavaan model. Both
+#' bootstrap_specification_search and resample_specification_search provide
 #' modifications and the number of times these modifications have been added
-#' to models in bootstrap samples or subsamples of the original data.
+#' to models in bootstrap samples or resamples of the original data.
 #' add_modifications adds some or all of these modificactions to the final model.
 #' To this end, specify threshold_percent_added - modifications that have been added
 #' in >= threshold_percent_added % of the models will be present in the final model.
 #' @param  spec_search_result result from bootstrap_specification_search or
-#' subsample_specification_search
+#' resample_specification_search
 #' @param threshold_percent_added modifications must have been added to
 #' threshold_percent_added % of the models to be added to the final model
 #' @return the lavaan syntax and fitted final model
@@ -40,24 +40,24 @@
 #'                                                data = data[train_set,],
 #'                                                operators = "~~")
 #'
-#' subsample_spec_search <- subsample_specification_search(model = base_model,
+#' resample_spec_search <- resample_specification_search(model = base_model,
 #'                                                         data = data[train_set,],
 #'                                                         alpha = .05,
 #'                                                         operators = "~~",
-#'                                                         number_of_subsamples = 10,
+#'                                                         number_of_resamples = 10,
 #'                                                         N_subsets = 80,
 #'                                                         missing = "ml",
 #'                                                         std.lv = FALSE)
 #'
-#' final_model <- add_modifications(subsample_spec_search,
+#' final_model <- add_modifications(resample_spec_search,
 #'                                  threshold_percent_added = 25)
 #'
 #' # cross-validate
-#' ## without subsampling:
+#' ## without resampling:
 #' cross_validate_lavaan(lavaan_model = specification_searched$lavaan_model,
 #'                       test_set = data[-train_set,])
 #'
-#' ## with subsampling:
+#' ## with resampling:
 #' cross_validate_lavaan(lavaan_model = final_model$lavaan_model,
 #'                       test_set = data[-train_set,])
 #' @export
@@ -65,8 +65,8 @@ add_modifications <- function(spec_search_result,
                               threshold_percent_added){
 
   if(!(is(spec_search_result, "Boot_Spec_Search") |
-       is(spec_search_result, "Subsample_Spec_Search"))){
-    stop("spec_search_result must be an object returned by bootstrap_specification_search or subsample_specification_search")
+       is(spec_search_result, "resample_Spec_Search"))){
+    stop("spec_search_result must be an object returned by bootstrap_specification_search or resample_specification_search")
   }
 
   if(threshold_percent_added > 100 | threshold_percent_added < 0){
@@ -76,8 +76,8 @@ add_modifications <- function(spec_search_result,
   if(is(spec_search_result, "Boot_Spec_Search")){
     number_of_samples <- spec_search_result$n_bootstrap_samples
   }
-  if(is(spec_search_result, "Subsample_Spec_Search")){
-    number_of_samples <- spec_search_result$number_of_subsamples
+  if(is(spec_search_result, "resample_Spec_Search")){
+    number_of_samples <- spec_search_result$number_of_resamples
   }
 
   add <- spec_search_result$result |>

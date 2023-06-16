@@ -22,7 +22,7 @@ This practice has been criticized for capitalization on chance
 That is, the model may adapt too closely to the data and start fitting noise.
 
 **semmi** is an R package building on [**lavaan**]() that provides bootstrapping
-and subsampling methods for model re-specification with modification indices.
+and resampling methods for model re-specification with modification indices.
 The objective is to make specification search less
 dependent on the sample, that is, to improve the stability. Importantly, this is
 still an exploratory method and the SEM is no longer confirmatory.
@@ -35,7 +35,7 @@ has been added to the model. The objective is to make specification search less
 dependent on the sample, that is, to improve the stability. Importantly, this is
 still an exploratory method and the SEM is no longer confirmatory.
 
-In subsampled specification search, random samples are drawn from the original
+In resampled specification search, random samples are drawn from the original
 data set. These samples have a smaller size than the original data and each subject
 may be present once or not at all in the subset. semmi will apply specification
 search to each of the samples and return the number of times a specific modification
@@ -72,11 +72,11 @@ model <- '
 '
 
 fit <- sem(model, data = PoliticalDemocracy)
-spec_searched <- subsample_specification_search(model = model,
+spec_searched <- resample_specification_search(model = model,
                                       data = PoliticalDemocracy,
                                       operators = "~~",
                                       N_subsets = 70,
-                                      number_of_subsamples = 5) # should be much higher!
+                                      number_of_resamples = 5) # should be much higher!
 plot(spec_searched)
 ```
 
@@ -99,11 +99,11 @@ model <- '
 '
 
 fit <- sem(model, data = PoliticalDemocracy)
-spec_searched <- subsample_specification_search(model = model,
+spec_searched <- resample_specification_search(model = model,
                                       data = PoliticalDemocracy,
                                       operators = "~~",
                                       N_subsets = 70,
-                                      number_of_subsamples = 5) # should be much higher!
+                                      number_of_resamples = 5) # should be much higher!
 plot(spec_searched)
 ```
 
