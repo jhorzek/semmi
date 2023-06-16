@@ -1,0 +1,28 @@
+Package: semmi
+Type: Package
+Title: Bootstrapped specification search for structural equation models
+Version: 0.1.0
+Authors@R: c(person(given   = "Jannik H.", family = "Orzek",
+                    role    = c("aut", "cre", "cph"),
+                    email   = "orzek@mpib-berlin.mpg.de",
+                    comment = c(ORCID = "0000-0002-3123-2248")))
+Maintainer: Jannik H. Orzek <orzek@mpib-berlin.mpg.de>
+Description: Modification indices are commonly used in structural equation models (SEM)
+             to post-hoc improve the fit. This practice has been criticized for
+             capitalization on chance (i.e., overfitting). semmi (SEM modification
+             indices) provides bootstrapped or cross-validated modification indices 
+             to evaluate the stability of added modifications.
+License: GPL>=2
+Encoding: UTF-8
+RoxygenNote: 7.2.3
+Roxygen: list(markdown = TRUE)
+Depends: 
+ lavaan,
+ dplyr
+Imports:
+    ggplot2,
+    mvtnorm
+Suggests:
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
