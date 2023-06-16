@@ -3,6 +3,9 @@
 
 # semmi
 
+> **Warning**: This project is experimental and should **not** be use
+> for publications.
+
 Fitting structural equation models is hard. Most models do not fit well
 and post-hoc respecification with modification indices is a common
 practice. This practice has been criticized for capitalization on chance
@@ -19,19 +22,17 @@ confirmatory.
 
 In bootstrapped specification search, random samples are drawn from the
 original data set. These samples have the same size as the original
-data, but may contain subjects multiple times.
-bootstrap_specification_search will apply specification search to each
+data, but may contain subjects multiple times. The function
+`bootstrap_specification_search` will apply specification search to each
 of the samples and return the number of times a specific modification
-has been added to the model. The objective is to make specification
-search less dependent on the sample, that is, to improve the stability.
-Importantly, this is still an exploratory method and the SEM is no
-longer confirmatory.
+has been added to the model.
 
 In resampled specification search, random samples are drawn from the
 original data set. These samples have a smaller size than the original
 data and each subject may be present once or not at all in the subset.
-semmi will apply specification search to each of the samples and return
-the number of times a specific modification has been added to the model.
+The function `resample_specification_search` will apply specification
+search to each of the samples and return the number of times a specific
+modification has been added to the model.
 
 ## Installation
 
@@ -47,6 +48,8 @@ devtools::install_github("jhorzek/semmi")
 ``` r
 # The following example is adapted from ?lavaan::sem
 library(semmi)
+set.seed(123)
+
 model <- '
   # latent variable definitions
      ind60 =~ x1 + x2 + x3
@@ -64,10 +67,10 @@ model <- '
 
 fit <- sem(model, data = PoliticalDemocracy)
 spec_searched <- resample_specification_search(model = model,
-                                      data = PoliticalDemocracy,
-                                      operators = "~~",
-                                      N_subsets = 70,
-                                      number_of_resamples = 5) # should be much higher!
+                                               data = PoliticalDemocracy,
+                                               operators = "~~",
+                                               N_subsets = 70,
+                                               number_of_resamples = 5) # should be much higher!
 plot(spec_searched)
 ```
 
