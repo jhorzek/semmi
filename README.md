@@ -34,6 +34,22 @@ The function `resample_specification_search` will apply specification
 search to each of the samples and return the number of times a specific
 modification has been added to the model.
 
+**semmi** is inspired by stability selection used in regularized SEM
+(see Li & Jacobucci 2021; Meinshausen & Bühlmann, 2010). The procedure
+is, to some degree, also similar to that used in gimme (Gates &
+Molenaar; 2012).
+
+- Gates, K. M., & Molenaar, P. C. M. (2012). Group search algorithm
+  recovers effective connectivity maps for individuals in homogeneous
+  and heterogeneous samples. NeuroImage, 63(1), 310–319.
+  <https://doi.org/10.1016/j.neuroimage.2012.06.026>
+- Li, X., & Jacobucci, R. (2021). Regularized structural equation
+  modeling with stability selection. Psychological Methods, 27(4),
+  497–518. <https://doi.org/10.1037/met0000389>
+- Meinshausen, N., & Bühlmann, P. (2010). Stability selection. Journal
+  of the Royal Statistical Society: Series B (Statistical Methodology),
+  72(4), 417–473. <https://doi.org/10.1111/j.1467-9868.2010.00740.x>
+
 ## Installation
 
 You can install the development version of **semmi** as follows:
