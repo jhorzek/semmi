@@ -11,35 +11,15 @@
 #' @export
 cross_validate_lavaan <- function(lavaan_model, test_set){
 
-  train_data <- lavaan::lavInspect(lavaan_model, what = "data")
-  test_set <- test_set[, colnames(train_data)]
+  cv_set <- lavaan_model@Options
+  cv_set <- cv_set[cv_set %in% names(lavaan::lavOptions())]
+  cv_set$do.fit <- FALSE
+  cv_set$data <- test_set
+  cv_set$model <- lavaan::parTable(lavaan_model)
 
-  implied <- lavaan::lavInspect(lavaan_model, "implied")
-  m2ll <- 0
+  cv_fit <- do.call("lavaan",
+                    args = cv_set)
 
-  if(is.null(implied$mean)){
-    implied$mean <- apply(train_data[complete.cases(train_data),],2,mean)
-  }
-
-  for(i in 1:nrow(test_set)){
-
-    is_missing <- is.na(test_set[i,])
-
-    if(all(is_missing))
-      next
-
-    implied_means_no_na <- implied$mean[!is_missing]
-    implied_cov_no_na <- implied$cov[!is_missing, !is_missing]
-
-    m2ll <- m2ll + (-2)*mvtnorm::dmvnorm(x = test_set[i,!is_missing, drop = FALSE],
-                                         mean = implied_means_no_na,
-                                         sigma = implied_cov_no_na,
-                                         log = TRUE)
-
-  }
-
-  class(m2ll) <- "-2-log-Likelihood"
-
-  return(m2ll)
+  return(-2*logLik(cv_fit))
 
 }
