@@ -13,8 +13,8 @@ practice. This practice has been criticized for capitalization on chance
 1992](https://psycnet.apa.org/doi/10.1037/0033-2909.111.3.490)). That
 is, the model may adapt too closely to the data and start fitting noise.
 
-**semmi** is an R package building on [**lavaan**]() that provides
-bootstrapping and resampling methods for model re-specification with
+**semmi** is an R package building on [**lavaan**](https://github.com/yrosseel/lavaan) 
+that provides bootstrapping and resampling methods for model re-specification with
 modification indices. The objective is to make specification search less
 dependent on the sample, that is, to improve the stability. Importantly,
 this is still an exploratory method and the SEM is no longer
